@@ -16,8 +16,10 @@ df_raw %>% tibble %>% filter(tweet_type == "retweet") %>%
          from_user_botscore,to_user_botscore) -> df
 
 G <- graph_from_data_frame(select(df,from_user_id,to_user_id),directed = T)
+
 G <- simplify(G)
-
+summary(G)
 save(G,df,file = "../input/out_refTrib.RData")
+V(G)
 
-
+load("../input/out_refTrib.RData")
