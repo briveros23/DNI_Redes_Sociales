@@ -1,6 +1,6 @@
 # networks
 
-Materiales del curso de Análisis Estadístico de Redes Sociales ofreciendo en el Departamento de Estadística de la Universidad Nacional de Colombia.
+Materiales del curso de Análisis Estadístico de Redes Sociales ofrecido al DNI por parte de la Universidad Nacional de Colombia.
 
 ## Contenido
 
