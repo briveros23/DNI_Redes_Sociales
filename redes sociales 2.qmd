@@ -1,0 +1,141 @@
+---
+title: "Módulo Redes Sociales: Sesión 2"
+author: "Departamento de Estadística"
+institute: "Universidad Nacional de Colombia, Sede Bogotá"
+format:
+  revealjs: 
+    chalkboard: false
+    embed-resources: true
+    self-contained-math: true
+    html-math-method: katex
+    #smaller: true
+    scrollable: true
+    code-fold: true
+    code-copy: true
+    slide-number: true
+    preview-links: auto
+    logo: logos.png
+    footer: Plan de formación DNI-UNAL 2024 - Perfil 1
+    link-external-newwindow: true
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
+---
+
+
+## Equipo de trabajo {.smaller}
+
+### Docente del módulo
+
+- Profesor Juan Camilo Sosa Martinez (Cohorte 1) <jcsosam@unal.edu.co>
+
+
+### Monitor del módulo
+
+- Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
+
+**Código a ejecutar para empezar (de clic en "Code" para desplegar el código)**:
+
+```{r}
+# cambia idioma de la consola de R a español:
+Sys.setenv(LANG="es")
+# usar 2 cifras significativas y tiende a evitar 
+# notación científica (ver ayuda de función: `options`): 
+options(digits = 2, scipen = 999) 
+# cargar librerías: 
+if(!require(igraph)){
+  install.packages("igraph"); library(igraph)}
+if(!require(sand)){
+  install.packages("sand"); library(sand)}
+```
+
+## Introducción {.smaller}
+
+**Conformación**, **almacenamiento** y **gestión** de datos relacionales:
+
+- Variables **diádicas**.
+- Variables **nodales**.
+- Variables **derivadas** (e.g., indicadoras de grupos).
+
+Un **grafo** por sí solo (una colección de vértices y aristas) suele ser insuficiente para representar todos los atributos una red.
+
+La **decoración** de un grafo corresponde a la **conjunción de vértices y aristas con otras variables** de interés (atributos).
+
+La **teoría de grafos** es fundamental para analizar redes sociales.
+
+## Grafos {.smaller}
+
+Un **grafo** $G = (V, E)$ es una estructura que consiste de un conjunto de **vértices** (nodos) $V$ y de un conjunto de **aristas** (enlaces) $E$, donde los elementos de $E$ son parejas de la forma $e=\{u,v\}$, con $u,v\in V$. 
+
+El **número de vértices** $|V|$ y el **número de aristas** $|E|$ se conocen como el **orden** y el **tamaño** del grafo, respectivamente.
+
+Los **vértices** del grafo **se enumeran** con los números enteros $1,\ldots,n$ o $0,\ldots,n-1$, donde $n = |V|$.
+
+## Grafos y digrafos
+
+Un grafo para el que cada arista $\{u,v\}\in E$ es tal que $\{u,v\} \not\equiv \{v,u\}$, para todo $u,v\in V$ se denomina **grafo dirigido** o **digrafo**. De lo contrario se llama **grafo no dirigido** o simplemente **grafo**. 
+
+```{r, eval = TRUE, echo=FALSE, out.width="50%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("02_graph_digraph.png")
+```
+
+## Multigrafos {.smaller}
+
+Un **multigrafo** es aquel grafo que permite **múltiples aristas** entre el mismo par de vértices y aristas de un vértice a sí mismo. 
+
+Un grafo que no es un multigrafo se denomina **grafo simple**.
+
+Paquete [multinet](https://uu.diva-portal.org/smash/get/diva2:1577343/FULLTEXT01.pdf) en R.
+
+```{r, eval = TRUE, echo=FALSE, out.width="100%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("02_multigraph.png")
+```
+
+## Ejemplo: red binaria no dirigida {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r,fold=TRUE}
+# red binaria no dirigida
+g <- graph_from_literal(1-2, 1-3, 2-3, 2-4, 3-5, 4-5, 4-6, 4-7, 5-6, 6-7)
+# otra manera
+# g <- graph(edges = c(1,2, 1,3, 2,3, 2,4, 3,5, 4,5, 4,6, 4,7, 5,6, 6,7), directed = FALSE)
+```
+:::
+
+::: {.column width="50%"}
+```{r, fig.height = 5, fig.width = 5, fig.align = 'center',fold=TRUE}
+# visualización
+set.seed(123)
+plot(g, vertex.size = 35, main = "Red binaria dirigida")
+```
+
+:::
+
+::::
+
+##
+
+```{r, fold=TRUE}
+# clase de objeto
+class(g)
+# identificador
+graph_id(g)
+# vértices
+V(g)
+# orden
+vcount(g)
+# aristas
+E(g)
+# tamaño
+ecount(g)
+# aristas (otro formato)
+print_all(g)
+# ponderada?
+is_weighted(g)
+# simple?
+is_simple(g)
+```
