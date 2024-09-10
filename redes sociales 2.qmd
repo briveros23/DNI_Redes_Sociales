@@ -10,7 +10,6 @@ format:
     html-math-method: katex
     #smaller: true
     scrollable: true
-    code-fold: true
     code-copy: true
     slide-number: true
     preview-links: auto
@@ -36,9 +35,10 @@ execute:
 
 - Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
 
-**Código a ejecutar para empezar (de clic en "Code" para desplegar el código)**:
+**Código a ejecutar para empezar (de clic en donde en dice "Code", para desplegar el código, y luego copie y pegue en una sesión abierta de R)**:
 
 ```{r}
+#| code-fold: true
 # cambia idioma de la consola de R a español:
 Sys.setenv(LANG="es")
 # usar 2 cifras significativas y tiende a evitar 
@@ -97,45 +97,349 @@ knitr::include_graphics("02_multigraph.png")
 :::: {.columns}
 
 ::: {.column width="50%"}
-
-```{r,fold=TRUE}
-# red binaria no dirigida
+Creación de la red binaria no dirigida
+```{r}
 g <- graph_from_literal(1-2, 1-3, 2-3, 2-4, 3-5, 4-5, 4-6, 4-7, 5-6, 6-7)
 # otra manera
 # g <- graph(edges = c(1,2, 1,3, 2,3, 2,4, 3,5, 4,5, 4,6, 4,7, 5,6, 6,7), directed = FALSE)
 ```
+Tipo de objeto en R
+```{r}
+class(g)
+```
+Vértices
+```{r}
+V(g)
+```
+
+
 :::
 
 ::: {.column width="50%"}
-```{r, fig.height = 5, fig.width = 5, fig.align = 'center',fold=TRUE}
-# visualización
+Orden
+```{r}
+vcount(g)
+```
+Aristas
+```{r}
+E(g)
+```
+Tamaño
+```{r}
+ecount(g)
+```
+
+
+:::
+
+::::
+## {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+Aristas (otro formato)
+```{r}
+print_all(g)
+```
+Es ponderada?
+```{r}
+is_weighted(g)
+```
+
+:::
+
+::: {.column width="50%"}
+Es simple?
+```{r}
+is_simple(g)
+```
+Visualización 
+```{r, fig.height = 4.4, fig.width = 4.4, fig.align = 'center',fold=TRUE}
 set.seed(123)
 plot(g, vertex.size = 35, main = "Red binaria dirigida")
+```
+:::
+
+::::
+## Ejmplo: red ponderada no dirigida {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+Creación de red ponderada no dirigida
+```{r}
+wg <- g
+E(wg)$weight <- round(runif(n = ecount(wg)), 3)
+```
+
+Pesos 
+```{r}
+E(wg)$weight
+```
+
+Es ponderada?
+```{r}
+is_weighted(wg)
+```
+
+:::
+
+::: {.column width="50%"}
+Visualización
+```{r, fig.height = 4.4, fig.width = 4.4, fig.align = 'center',fold=TRUE}
+
+set.seed(123)
+plot(wg, edge.width = 5*E(wg)$weight, main = "Red ponderada no dirigida")
 ```
 
 :::
 
 ::::
 
-##
+## Ejemplo: red binaria dirigida {.smaller}
 
-```{r, fold=TRUE}
-# clase de objeto
-class(g)
-# identificador
-graph_id(g)
-# vértices
-V(g)
-# orden
-vcount(g)
-# aristas
-E(g)
-# tamaño
-ecount(g)
-# aristas (otro formato)
-print_all(g)
-# ponderada?
-is_weighted(g)
-# simple?
-is_simple(g)
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+# creación de red binaria dirigida
+dg <- graph_from_literal(1-+2, 1-+3, 2++3)
 ```
+
+Aristas
+```{r}
+E(dg)
+```
+
+Etiquetas o nombres
+
+```{r}
+V(dg)$name <- c("Juan", "Maria", "Pedro")
+```
+Agregar atributos a los nodos 
+
+```{r}
+# agregar 'sexo' como atributo
+V(dg)$sexo <- c("M","F","M")
+```
+
+:::
+
+::: {.column width="50%"}
+
+```{r, fig.height = 4.4, fig.width = 4.4, fig.align = 'center'}
+# visualización
+set.seed(123)
+plot(dg, vertex.size = 35, main = "Red binaria dirigida")
+```
+:::
+
+::::
+
+
+## Ejemplo: multigrafo {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+# creación del multigrafo
+mg <- g + edge(c(1,1), c(1,2), c(1,3))
+print_all(mg)
+```
+Es simple?
+```{r}
+is_simple(mg)
+```
+
+Simplificación
+```{r}
+E(mg)$weight <- 1
+wg2 <- simplify(mg)
+```
+:::
+
+::: {.column width="50%"}
+
+Es simple despues dela simplificación?
+```{r}
+is_simple(wg2)
+```
+Es ponderada?
+```{r}
+is_weighted(wg2)
+```
+Aristas
+```{r}
+# se pierden los bucles
+E(wg2)
+```
+Pesos
+```{r}
+E(wg2)$weight
+```
+
+:::
+
+::::
+# Estructuras de datos
+
+Generalmente los grafos **no se definen manualmente** ya que en la práctica la mayoría de las redes son **grandes**.
+
+Los datos para construir un grafo comúnmente se almacenarán en un **archivo de datos** (.txt, .csc, .dat, etc.). 
+
+## Matriz de adyacencia
+
+La **matriz de adyacencia** o **socio-matriz** $\mathbf{Y} = [y_{i,j}]$ asociada con un grafo $G=(V,E)$ de orden $n$ es una **matriz binaria** de $n \times n$ tal que $y_{i,j} = 1$ si $\{i,j\} \in E$ y $y_{i,j} = 0$ en otro caso.
+
+La **diagonal principal** de una matriz de adyacencia está llena de **ceros estructurales**.
+
+La matriz de adyacencia de un **grafo no dirigido** es **necesariamente simétrica**. 
+
+La matriz de adyacencia de un **grafo dirigido**    es **posiblemente asimétrica**.
+
+
+## Ejemplo: red binaria no dirigida {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Creación de la red binaria no dirigida
+```{r}
+g <- graph_from_literal(1-2, 1-3, 2-3, 2-4, 3-5, 4-5, 4-6, 4-7, 5-6, 6-7)
+```
+
+Visualización
+
+```{r, fig.height = 5, fig.width = 5, fig.align = 'center'}
+set.seed(123)
+plot(g, main = "Red binaria no dirigida")
+```
+
+:::
+
+::: {.column width="50%"}
+Extracción de la matriz de adyacencia
+```{r}
+# formato 'matrix array'
+Y <- get.adjacency(g, sparse = F)
+# clase de objeto
+class(Y)
+# simétrica?
+isSymmetric(Y)
+print(Y)
+```
+Versión vectorizada exhaustiva
+```{r}
+(yvec1 <- Y[lower.tri(Y)])
+```
+Versión vectorizada indexada
+```{r}
+(yvec2 <- which(yvec1 == 1))
+```
+
+:::
+
+::::
+
+## Matriz de aristas
+
+Una **matriz de aristas** es un **arreglo de dos columnas** conformado por todos los **pares de vértices** que están **unidos** por una arista.
+
+## Ejemplo: red binaria no dirigida (cont.)
+:::: {.columns}
+
+::: {.column width="50%"}
+
+```{r}
+# matriz de aristas
+n <- dim(Y)[1]
+A <- NULL
+for (i in 1:(n-1)) 
+  for (j in (i+1):n) 
+    if (Y[i,j] == 1) 
+      A <- rbind(A, c(i,j))
+```
+
+:::
+
+::: {.column width="50%"}
+```{r}
+# clase de objeto
+class(A)
+print(A)
+```
+
+:::
+
+::::
+## Ejemplo: Trabajo colaborativo {.smaller}
+
+Red de **relaciones de trabajo colaborativo** entre los miembros de una firma de abogados (SG&R). 
+
+Estos datos fueron recolectados para **estudiar la cooperación** entre los actores de una organización.
+
+$y_{i,j} = 1$ si los miembros $i$ y $j$ **trabajaron juntos** en al menos un caso y $y_{i,j} = 0$ en otro caso.
+
+Una descripción completa de los datos se puede encontrar [aquí](https://www.stats.ox.ac.uk/~snijders/siena/Lazega_lawyers_data.htm).
+
+Disponible en el paquete `sand` de R.
+
+Lazega, E. (2001). **The collegial phenomenon: The social mechanisms of cooperation among peers in a corporate law partnership**. Oxford University Press on Demand.
+
+## 
+
+```{r}
+# install.packages("sand")
+suppressMessages(suppressWarnings(library(sand)))
+```
+
+
+```{r}
+# datos
+head(elist.lazega)
+# clase de objeto
+class(elist.lazega)
+# dimensión
+dim(elist.lazega)
+```
+
+
+```{r}
+# grafo
+g_lazega <- graph_from_data_frame(d = elist.lazega, directed = "F", vertices = v.attr.lazega)
+# ver también 'graph_from_edgelist' y 'graph_from_adjacency_matrix'}
+V(g_lazega)$name <- 1:vcount(g_lazega)
+```
+
+
+```{r}
+# matriz de adyacencia
+Y_lazega <- get.adjacency(g_lazega, sparse = F)
+```
+
+
+```{r}
+# simple?
+is_simple(g_lazega)
+# ponderado?
+is_weighted(g_lazega)
+# orden
+vcount(g_lazega)
+# tamaño
+ecount(g_lazega)
+```
+
+
+```{r, fig.height = 7, fig.width = 14, fig.align='center'}
+# visualización
+par(mfrow = c(1,2))
+# grafo
+set.seed(123)
+plot(g_lazega, vertex.size = 9, vertex.label.color = "black", vertex.color = NA, vertex.frame.color = "black", edge.color = "blue4", main = "Trabajo colaborativo")
+# matriz de adyacencia
+corrplot::corrplot(corr = Y_lazega, method = "color", tl.col = "black", addgrid.col = "gray90", cl.pos = "n")
+```
+
+
