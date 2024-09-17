@@ -388,8 +388,10 @@ Disponible en el paquete `sand` de R.
 
 Lazega, E. (2001). **The collegial phenomenon: The social mechanisms of cooperation among peers in a corporate law partnership**. Oxford University Press on Demand.
 
-## 
+## Codigo {.smaller}
+:::: {.columns}
 
+::: {.column width="50%"}
 ```{r}
 # install.packages("sand")
 suppressMessages(suppressWarnings(library(sand)))
@@ -405,6 +407,9 @@ class(elist.lazega)
 dim(elist.lazega)
 ```
 
+:::
+
+::: {.column width="50%"}
 
 ```{r}
 # grafo
@@ -431,9 +436,14 @@ vcount(g_lazega)
 ecount(g_lazega)
 ```
 
+:::
+
+::::
+
+## Visualización {.smaller}
 
 ```{r, fig.height = 7, fig.width = 14, fig.align='center'}
-# visualización
+
 par(mfrow = c(1,2))
 # grafo
 set.seed(123)
