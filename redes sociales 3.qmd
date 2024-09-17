@@ -1,0 +1,126 @@
+---
+title: "Módulo Redes Sociales: Sesión 3"
+author: "Departamento de Estadística"
+institute: "Universidad Nacional de Colombia, Sede Bogotá"
+format:
+  revealjs: 
+    chalkboard: false
+    embed-resources: true
+    self-contained-math: true
+    html-math-method: katex
+    #smaller: true
+    scrollable: true
+    code-copy: true
+    slide-number: true
+    preview-links: auto
+    logo: logos.png
+    footer: Plan de formación DNI-UNAL 2024 - Perfil 1
+    link-external-newwindow: true
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
+---
+
+
+## Equipo de trabajo {.smaller}
+
+### Docente del módulo
+
+- Profesor Juan Camilo Sosa Martinez (Cohorte 1) <jcsosam@unal.edu.co>
+
+
+### Monitor del módulo
+
+- Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
+
+**Código a ejecutar para empezar (de clic en donde en dice "Code", para desplegar el código, y luego copie y pegue en una sesión abierta de R)**:
+
+```{r}
+#| code-fold: true
+# cambia idioma de la consola de R a español:
+Sys.setenv(LANG="es")
+# usar 2 cifras significativas y tiende a evitar 
+# notación científica (ver ayuda de función: `options`): 
+options(digits = 2, scipen = 999) 
+# cargar librerías: 
+if(!require(igraph)){
+  install.packages("igraph"); library(igraph)}
+if(!require(sand)){
+  install.packages("sand"); library(sand)}
+```
+
+
+# Grafos y subgrafos
+
+## Grafos
+
+Un **grafo** $G = (V, E)$ es una estructura que consiste de un conjunto de **vértices** (nodos) $V$ y de un conjunto de **aristas** (enlaces) $E$, donde los elementos de $E$ son parejas de la forma $e=\{u,v\}$, con $u,v\in V$. 
+
+## Subgrafos 
+
+Un grafo $G'=(V',E')$ es un **subgrafo** de $G=(V,E)$ si $V'\subset V$ y $E'\subset E$.
+
+```{r, eval = TRUE, echo=FALSE, out.width="70%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("02_subgraph.png")
+```
+
+# Isomorfismo 
+
+Dos grafos que son **equivalentes estructuralmente** (a pesar de las etiquetas de los vértices) se denominan **isomorfos**. 
+
+Dos grafos $G_1 = (V_1, E_1)$ y $G_2 = (V_2, E_2)$ son **isomorfos**, lo que se escribe $G_1 \equiv G_2$, si existe una biyección $\varphi:V_1\longrightarrow V_2$ tal que $\{u,v\}\in E_1$ si y solo si $\{\varphi(u),\varphi(v)\}\in E_2$.
+
+
+## Ejemplo {.smaller}
+
+```{r, eval = TRUE, echo=FALSE, out.width="60%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("02_iso0.jpeg")
+```
+Si $G_1 \equiv G_2$, entonces $|V_1| = |V_2|$ y $|E_1| = |E_2|$.
+
+Si $|V_1| \neq |V_2|$ o $|E_1| \neq |E_2|$, entonces $G_1 \not\equiv G_2$.
+
+Si $G_1 \equiv G_2$ y $\{u,v\}\notin E_1$, entonces $\{\varphi(u),\varphi(v)\}\notin E_2$.
+
+
+## Ejercicio 
+
+¿$G_1$ y $G_2$ son isomorfos?
+
+```{r, eval = TRUE, echo=FALSE, out.width="75%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("02_iso1.png")
+```
+
+
+## Ejemplo Práctico 
+
+Creación grafos
+```{r}
+suppressMessages(suppressWarnings(library(igraph)))
+
+g1 <- graph_from_literal(0-1, 1-2, 2-3, 3-4, 4-0)
+g2 <- graph_from_literal(a-c, a-d, b-d, b-e, c-e)
+```
+
+Son isomorfos?
+```{r}
+# 'method'
+# auto: Selecciona el mejor procedimiento
+# direct: Si el grafo tiene tres o cuatro vértices
+# vf2: Si el grafo es dirigido
+# bliss: En cualquier otro caso
+
+isomorphic(g1, g2, method = "auto")
+```
+
+## Visualización
+
+```{r, fig.height = 5, fig.width = 10, fig.align='center'}
+# visualización
+set.seed(123)
+par(mfrow = c(1,2))
+plot(g1, vertex.size = 15, main = "Grafo 1")
+plot(g2, vertex.size = 15, main = "Grafo 2")
+```
