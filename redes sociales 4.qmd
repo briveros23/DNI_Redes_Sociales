@@ -1,0 +1,90 @@
+---
+title: "Módulo Redes Sociales: Sesión 4"
+author: "Departamento de Estadística"
+institute: "Universidad Nacional de Colombia, Sede Bogotá"
+format:
+  revealjs: 
+    chalkboard: false
+    embed-resources: true
+    self-contained-math: true
+    html-math-method: katex
+    #smaller: true
+    scrollable: true
+    code-copy: true
+    slide-number: true
+    preview-links: auto
+    logo: logos.png
+    footer: Plan de formación DNI-UNAL 2024 - Perfil 1
+    link-external-newwindow: true
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
+---
+
+## Equipo de trabajo {.smaller}
+
+### Docente del módulo
+
+- Profesor Juan Camilo Sosa Martinez (Cohorte 1) <jcsosam@unal.edu.co>
+
+
+### Monitor del módulo
+
+- Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
+
+**Código a ejecutar para empezar (de clic en donde en dice "Code", para desplegar el código, y luego copie y pegue en una sesión abierta de R)**:
+
+```{r}
+#| code-fold: true
+# cambia idioma de la consola de R a español:
+Sys.setenv(LANG="es")
+# usar 2 cifras significativas y tiende a evitar 
+# notación científica (ver ayuda de función: `options`): 
+options(digits = 2, scipen = 999) 
+# cargar librerías: 
+if(!require(igraph)){
+  install.packages("igraph"); library(igraph)}
+if(!require(sand)){
+  install.packages("sand"); library(sand)}
+```
+
+
+# Introducción {.smaller}
+
+La visualización de redes incorpora aspectos **matemáticos** y **algorítmicos** junto con **elementos estéticos**.
+
+La visualización de un grafo $G=(V,E)$ consiste en **crear representaciones geométricas de grafos** utilizando **símbolos** para los vértices $v \in V$ y **curvas suaves** para las aristas $e \in E$.
+
+El objetivo consiste en **comunicar adecuadamente la información relacional** siguiendo los principios fundamentales de una visualización:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+- Propósito.
+- Claridad.
+- Simplicidad.
+- Escalas.
+- Títulos.
+:::
+
+::: {.column width="50%"}
+- Etiquetas.
+- Colores.
+- Tamaños.
+- Formas.
+
+:::
+
+::::
+
+## 
+
+```{r, eval = TRUE, echo=FALSE, out.width="100%", fig.pos = 'H', fig.align = 'center', fig.cap = " Tomado de https://kateto.net/network-visualization ."}
+knitr::include_graphics("03_net_viz_control.png")
+```
+
+
+
+
