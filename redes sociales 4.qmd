@@ -86,5 +86,219 @@ knitr::include_graphics("03_net_viz_control.png")
 ```
 
 
+## Fundamentos de visualización de redes {.smaller}
 
+- ¿Cuál es el **propósito** que debe cumplir la visualización? 
+     
+- ¿Cuáles son las **propiedades** que se quieren resaltar? 
+
+##
+
+```{r, eval = TRUE, echo=FALSE, out.width="100%", fig.pos = 'H', fig.align = 'center', fig.cap = " Tomado de https://kateto.net/network-visualization ."}
+knitr::include_graphics("03_net_viz_goals.png")
+```
+
+## Tipos de visualización de redes {.smaller}
+
+Hay disponibles **diferentes** tipos de visualización.
+
+```{r, eval = TRUE, echo=FALSE, out.width="80%", fig.pos = 'H', fig.align = 'center', fig.cap = " Tomado de https://kateto.net/network-visualization ."}
+knitr::include_graphics("03_net_viz_types.png")
+```
+
+# Diseños
+
+Uno de los temas centrales de la visualización de grafos es el **diseño del grafo** (*graph layout*), i.e., la **ubicación** de los **vértices** y las **aristas** en el **espacio bidimensional**.
+
+Los grafos de tamaño no trivial deben dibujarse utilizando **métodos automatizados**.
+
+Se usan algoritmos que solucionan los **problemas de optimización** derivados del propósito de la representación automática.
+
+## 
+Los diseños buscan minimizar las superposiciones de vértices y el cruce de aristas.
+
+```{r, eval = TRUE, echo=FALSE, out.width="80%", fig.pos = 'H', fig.align = 'center', fig.cap = " Tomado de https://kateto.net/network-visualization ."}
+knitr::include_graphics("03_net_viz_aesthetics.png")
+```
+
+## {.smaller}
+
+Hay disponibles varios diseños en `igraph`, entre ellos:
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- `layout_as_bipartite()`.
+- `layout_as_star()`.
+- `layout_as_tree()`. 
+- `layout_in_circle()`.
+- `layout_nicely()`.
+- `layout_on_grid()`.
+- `layout_on_sphere()`. 
+- `layout_randomly()`.
+
+:::
+
+::: {.column width="50%"}
+
+- `layout_with_dh()`.
+- `layout_with_fr()`.
+- `layout_with_gem()`.
+- `layout_with_graphopt()`.
+- `layout_with_kk()`.
+- `layout_with_lgl()`.
+- `layout_with_mds()`.
+- `layout_with_sugiyama()`.
+:::
+
+::::
+Estos diseños producen un arreglo de $n\times 2$, con $n = |V|$, con las **coordenadas** de los vértices en $\mathbb{R}^2$ que se emplean en la visualización.
+
+## Ejemplo: **Reforma Tributaria** en Colombia
+**Red de influencia en Twitter** (ahora X) sobre la Reforma Tributaria en Colombia, en el contexto de su aprobación en el Congreso.
+
+Estos datos fueron recolectados para **estudiar las dinámicas** de interacción entre usuarios de la red social, en relación con las opiniones sobre la Reforma Tributaria.
+
+Los usuarios están conectados mediante aristas ponderadas por el **número de interacciones** (tuits, retuits, citas y comentarios) relacionadas con el tema.
+
+
+
+## {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+Datos
+
+```{r}
+#| echo: True
+load('out_refTrib.RData')
+head(df[,c(3,4)],4)
+```
+Grafo
+
+```{r}
+g
+```
+:::
+
+::: {.column width="50%"}
+Orden
+```{r}
+vcount(g)
+```
+Tamaño
+```{r}
+ecount(g)
+```
+
+Es dirigida?
+```{r}
+is_directed(g)
+```
+Es ponderada?
+```{r}
+
+is_weighted(g)
+```
+
+Diseños
+```{r}
+
+set.seed(123)
+l_n  <- layout_nicely (g)
+l_dh <- layout_with_dh(g)
+l_fr <- layout_with_fr(g)
+l_kk <- layout_with_kk(g)
+```
+:::
+
+::::
+
+##  Visualización {.smaller}
+
+```{r, fig.width=10, fig.height=10, fig.align='center'}
+#| code-fold: true
+par(mfrow = c(2,2), mar = c(4, 3, 3, 1))
+plot(g, layout = l_n,  vertex.size = 4, vertex.label = NA, vertex.color = "black", vertex.frame.color = "black",edge.arrow.size = 0.3)
+title(main = "Nicely")
+plot(g, layout = l_dh, vertex.size = 4, vertex.label = NA, vertex.color = "black", vertex.frame.color = "black",edge.arrow.size = 0.3)
+title(main = "Davidson-Harel")
+plot(g, layout = l_fr, vertex.size = 4, vertex.label = NA, vertex.color = "black", vertex.frame.color = "black",edge.arrow.size = 0.3)
+title(main = "Fruchterman-Reingold")
+plot(g, layout = l_kk, vertex.size = 4, vertex.label = NA, vertex.color = "black", vertex.frame.color = "black",edge.arrow.size = 0.3)
+title(main = "Kamada-Kawai")
+```
+
+## Decoración
+
+Si bien la posición de los vértices y la ubicación de las aristas es importante en la visualización de grafos, la **información adicional se puede incorporar en las visualizaciones** variando características como el **tamaño**, la **forma** y el **color** de los **vértices** y las **aristas**.
+
+##  Visualización {.smaller}
+
+```{r, fig.height = 6, fig.width = 12, fig.align='center'}
+#| code-fold: true
+par(mfrow = c(1, 2), mar = c(4, 3, 3, 1))
+
+# Grafo no decorado
+plot(g, layout = l_fr, vertex.label = NA, vertex.size = 4, vertex.color = "black", vertex.frame.color = "black", edge.arrow.size = 0.2)
+title(main = "Interacciones sociales")
+
+# Decoración
+# Etiquetas: solo mostrar a "petrogustavo"
+V(g)$label <- NA
+V(g)["petrogustavo"]$label <- "Gustavo Petro"
+
+# Formas
+V(g)$shape <- "circle"
+V(g)["petrogustavo"]$shape <- "rectangle"
+
+# Colores con transparencia
+V(g)[Grupo == 1]$color <- rgb(1, 0, 0, 0.6)  # rojo con 60% opacidad
+V(g)[Grupo == 2]$color <- rgb(0.12, 0.56, 1, 0.6)  # azul claro con 60% opacidad
+F1 <- V(g)[Grupo == 1]
+F2 <- V(g)[Grupo == 2]
+
+# Bordes de aristas
+E(g)[F1 %--% F1]$color <- "pink"
+E(g)[F2 %--% F2]$color <- "lightblue"
+E(g)[F1 %--% F2]$color <- "yellow"
+
+# Tamaños generales
+V(g)$size <- 2 * log(degree(g))
+V(g)["petrogustavo"]$size <- 43 
+
+# Bordes del mismo color que el nodo
+V(g)$frame.color <- V(g)$color
+
+# Grafo decorado
+plot(g, layout = l_fr, vertex.frame.color = V(g)$frame.color, vertex.label.color = "black", edge.arrow.size = 0.2, vertex.label.cex = 0.8)
+title(main = "Interacciones sociales")
+
+```
+
+
+##  Visualización {.smaller}
+
+```{r}
+#| code-fold: true
+par(mfrow = c(1, 2), mar = c(4, 3, 3, 1))
+cols <- RColorBrewer::brewer.pal(n = 5, name = "Set1")
+Grupo <- as.numeric(as.factor(V(g)$Grupo))
+V(g)$color <- cols[Grupo]
+E(g)$color <- adjustcolor("black", 0.1)
+set.seed(123)
+plot(g, layout = l_fr, vertex.size = 4, vertex.label = NA, vertex.frame.color = cols[Grupo], main = "Referencias on-line",edge.arrow.size = 0.1)
+# contracción
+g_c <- contract(graph = g, mapping = Grupo)
+E(g_c)$weight <- 1
+g_c <- simplify(g_c)
+# decoración
+Grupo_tam <- as.vector(table(V(g)$Grupo))
+V(g_c)$size <- 3*sqrt(Grupo_tam)
+E(g_c)$width <- sqrt(E(g_c)$weight)
+# visualización
+set.seed(123)
+plot(g_c, vertex.label = NA, vertex.color = cols, vertex.frame.color = cols, main = "Referencias on-line",edge.arrow.size = 0.5)
+```
 
