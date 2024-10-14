@@ -155,12 +155,15 @@ Hay disponibles varios diseños en `igraph`, entre ellos:
 ::::
 Estos diseños producen un arreglo de $n\times 2$, con $n = |V|$, con las **coordenadas** de los vértices en $\mathbb{R}^2$ que se emplean en la visualización.
 
-## Ejemplo: **Reforma Tributaria** en Colombia
+## Ejemplo: **Reforma Tributaria** en Colombia. {.smaller}
+
 **Red de influencia en Twitter** (ahora X) sobre la Reforma Tributaria en Colombia, en el contexto de su aprobación en el Congreso.
 
 Estos datos fueron recolectados para **estudiar las dinámicas** de interacción entre usuarios de la red social, en relación con las opiniones sobre la Reforma Tributaria.
 
 Los usuarios están conectados mediante aristas ponderadas por el **número de interacciones** (tuits, retuits, citas y comentarios) relacionadas con el tema.
+
+El artículo asociado a estos datos puede ser encontrado [aquí](https://arxiv.org/abs/2408.13606).
 
 
 
@@ -241,7 +244,7 @@ Si bien la posición de los vértices y la ubicación de las aristas es importan
 par(mfrow = c(1, 2), mar = c(4, 3, 3, 1))
 
 # Grafo no decorado
-plot(g, layout = l_fr, vertex.label = NA, vertex.size = 4, vertex.color = "black", vertex.frame.color = "black", edge.arrow.size = 0.2)
+plot(g, layout = l_kk, vertex.label = NA, vertex.size = 4, vertex.color = "black", vertex.frame.color = "black", edge.arrow.size = 0.2)
 title(main = "Interacciones sociales")
 
 # Decoración
@@ -272,7 +275,7 @@ V(g)["petrogustavo"]$size <- 43
 V(g)$frame.color <- V(g)$color
 
 # Grafo decorado
-plot(g, layout = l_fr, vertex.frame.color = V(g)$frame.color, vertex.label.color = "black", edge.arrow.size = 0.2, vertex.label.cex = 0.8)
+plot(g, layout = l_kk, vertex.frame.color = V(g)$frame.color, vertex.label.color = "black", edge.arrow.size = 0.2, vertex.label.cex = 0.8)
 title(main = "Interacciones sociales")
 
 ```
@@ -288,7 +291,7 @@ Grupo <- as.numeric(as.factor(V(g)$Grupo))
 V(g)$color <- cols[Grupo]
 E(g)$color <- adjustcolor("black", 0.1)
 set.seed(123)
-plot(g, layout = l_fr, vertex.size = 4, vertex.label = NA, vertex.frame.color = cols[Grupo], main = "Referencias on-line",edge.arrow.size = 0.1)
+plot(g, layout = l_kk, vertex.size = 4, vertex.label = NA, vertex.frame.color = cols[Grupo], main = "Referencias on-line",edge.arrow.size = 0.1)
 # contracción
 g_c <- contract(graph = g, mapping = Grupo)
 E(g_c)$weight <- 1

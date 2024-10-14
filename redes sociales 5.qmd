@@ -1,0 +1,405 @@
+---
+title: "Módulo Redes Sociales: Sesión 5"
+author: "Departamento de Estadística"
+institute: "Universidad Nacional de Colombia, Sede Bogotá"
+format:
+  revealjs: 
+    chalkboard: false
+    embed-resources: true
+    self-contained-math: true
+    html-math-method: katex
+    #smaller: true
+    scrollable: true
+    code-copy: true
+    slide-number: true
+    preview-links: auto
+    logo: logos.png
+    footer: Plan de formación DNI-UNAL 2024 - Perfil 1
+    link-external-newwindow: true
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
+---
+
+## Equipo de trabajo {.smaller}
+
+### Docente del módulo
+
+- Profesor Juan Camilo Sosa Martinez (Cohorte 1) <jcsosam@unal.edu.co>
+
+
+### Monitor del módulo
+
+- Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
+
+**Código a ejecutar para empezar (de clic en donde en dice "Code", para desplegar el código, y luego copie y pegue en una sesión abierta de R)**:
+
+```{r}
+#| code-fold: true
+# cambia idioma de la consola de R a español:
+Sys.setenv(LANG="es")
+# usar 2 cifras significativas y tiende a evitar 
+# notación científica (ver ayuda de función: `options`): 
+options(digits = 2, scipen = 999) 
+# cargar librerías: 
+if(!require(igraph)){
+  install.packages("igraph"); library(igraph)}
+if(!require(sand)){
+  install.packages("sand"); library(sand)}
+```
+
+
+# Introducción
+
+Se quiere caracterizar aspectos fundamentales de la **estructura social** de una red representada por medio de un grafo $G=(V,E)$:
+
+- **Importancia de individuos**.
+- Dinámicas sociales.
+- Flujo de la información.
+- Formación de comunidades.
+
+## Grado y fuerza {.smaller}
+
+El **grado** (*degree*) $d_v$ de un vértice $v\in V$ se define como        
+$d_v=|\left\{\{v,u\}\in E:u\in V \right\}|$, i.e., $d_v$ corresponde al número de aristas incidentes en $v$. 
+
+A partir de la **matriz de adyacencia** $\mathbf{Y}=[y_{i,j}]$ se tiene que el grado del individuo $i$ se puede calcular mediante
+
+$$
+d_i = \sum_{i:i\neq j} y_{i,j} = \sum_{j:j \neq i} y_{i,j}\,,\qquad \text{para}\,\,i=1,\ldots,n\,.
+$$
+
+El grado de un vértice es la combinación de la **sociabilidad** y la **popularidad**.
+
+## ¿Cómo se adaptan estos conceptos en el caso de los **digrafos**? {.smaller}
+
+En redes ponderadas, la **fuerza** (*strength*) $s_v$ de un vértice $v\in V$ se define como 
+$$
+s_v = \sum_{u\in V:\{v,u\}\in E} w_{\{v,u\}}\,,
+$$
+i.e., la suma de los pesos de las aristas incidentes en $v$.
+
+## Ejemplo: **Reforma Tributaria** en Colombia.{.smaller}
+
+**Red de influencia en Twitter** (ahora X) sobre la Reforma Tributaria en Colombia, en el contexto de su aprobación en el Congreso.
+
+Estos datos fueron recolectados para **estudiar las dinámicas** de interacción entre usuarios de la red social, en relación con las opiniones sobre la Reforma Tributaria.
+
+Los usuarios están conectados mediante aristas ponderadas por el **número de interacciones** (tuits, retuits, citas y comentarios) relacionadas con el tema.
+
+El artículo asociado a estos datos puede ser encontrado [aquí](https://arxiv.org/abs/2408.13606).
+
+## Ejemplo {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Datos
+```{r}
+load('out_refTrib.RData')
+```
+Grafo
+```{r}
+g
+```
+:::
+
+::: {.column width="50%"}
+Orden
+```{r}
+(n <- vcount(g))
+```
+Tamaño
+```{r}
+ecount(g)
+```
+Es dirigida?
+```{r}
+is_directed(g)
+```
+Es ponderada?
+```{r}
+is_weighted(g)
+```
+
+:::
+
+::::
+
+
+## 
+
+
+```{r}
+# matriz de adyacencia
+Y <- as_adjacency_matrix(g, sparse = F)
+# grado
+head(
+  cbind(
+    degree(graph = g), 
+    apply(X = Y, MARGIN = 1, FUN = sum), 
+    apply(X = Y, MARGIN = 2, FUN = sum)), n = 5)
+```
+
+
+```{r}
+# grado
+d <- degree(graph = g)
+head(sort(d, decreasing = T), n = 10)
+```
+
+## 
+```{r, eval = TRUE, echo=FALSE, out.width="100%", fig.pos = 'H', fig.align = 'center', fig.cap = "Top 10 de los participantes de la discusión según el grado."}
+knitr::include_graphics("04_g_degree_top10.png")
+```
+
+## Visualización
+
+
+```{r, fig.width=14, fig.height=7, fig.align='center'}
+#| code-fold: true
+# diseño
+set.seed(123)
+l <- layout_with_kk(g)
+# usando el grado
+plot(g, layout = l, vertex.size = 1.5*sqrt(d), vertex.label = NA, vertex.color = adjustcolor("royalblue",0.2), vertex.frame.color = "royalblue", edge.color = adjustcolor("gray",0.4),edge.arrow.size = 0.5)
+title(sub = "Grado", line = -1)
+```
+
+
+## Distribución del grado
+
+La **distribución del grado** (*degree distribución*) de $G$ es la colección de frecuencia relativas $f_0, f_1,\ldots$, donde
+$$
+f_d = \frac{|\{v\in V:d_v = d\}|}{|V|}\,,\qquad \text{para}\,\,d=0,1,\ldots\,,
+$$
+i.e., la fracción de vértices en $V$ tales que $d_v = d$.
+
+La **distribución de fuerza** (*strength distribution*) se define de manera análoga.
+
+
+
+## Visualización {.smaller}
+En este gráfico se observa que la mayoría de los individuos tienen un grado bajo, mientras que un grupo reducido presenta un grado elevado. Estos últimos corresponden a figuras altamente influyentes, como el presidente Petro, cuya importancia ya había sido destacada previamente.
+```{r, fig.height = 6, fig.width = 12, fig.align='center'}
+#| code-fold: true
+
+par(mfrow = c(1,2))
+
+# Gráfico de barras (distribución del grado)
+plot(table(factor(d, levels = 0:n)) / n, type = "h", lwd = 5, 
+     xlab = "Grado", ylab = "Densidad", 
+     xlim = c(0, max(d)), ylim = c(0, max(table(factor(d, levels = 0:n)) / n)), 
+     main = "", xaxt = "n", col = "gray50")
+axis(side = 1, at = seq(from = 0, to = max(d), by = 5))  # Ajustar el eje x automáticamente
+
+# Histograma (densidad del grado)
+plot(NA, NA, type = "n", xlim = c(min(d), max(d)), ylim = c(0, 0.4), xlab = "Grado", ylab = "Densidad", main = "")
+hist(d, freq = FALSE, col = "gray90", border = "gray50",add =T)
+
+# Título general
+title(main = "Distribución del grado", outer = TRUE, line = -2)
+```
+## Ley de potencias {.smaller}
+
+En algunas redes se tiene que una gran porción de vértices tiene grado bajo y una pequeña fracción tiene grado alto. Esta pequeña fracción de vértices se conoce como **centros** (*hubs*).
+
+En estos casos la distribución del grado tiene una **cola larga a la derecha**. Esto se traduce en un **decaimiento aproximadamente lineal** en la frecuencia logarítmica en función del grado logarítmico. 
+
+La **distribución de la ley de potencias** (*power law distribution*) señala que la distribución del grado $d$ es de la forma
+$$
+f_d = \mathrm{c}\,d^{-\alpha}\,,\qquad \mathrm{c}>0\,,\qquad \alpha>1\,,
+$$
+lo que en escala log corresponde a
+$$
+\log f_d = \log \mathrm{c} - \alpha\log d\,.
+$$
+$\mathrm{c}$ se denomina constante de normalización y $\alpha$ exponente de la ley de potencias (similar a la **distribución de Pareto**).
+
+## Libre de escala
+
+Las redes que satisfacen este tipo de distribución del grado se denominan **libres de escala** (*scale free*) dado que
+$$
+f_{a\,d} =  \mathrm{c}\, (a\,d)^{-\alpha} = a^{-\alpha}\,f_d\,.
+$$
+En una red libre de escala, algunos nodos están altamente conectados, es decir, poseen un gran número de enlaces a otros nodos, aunque el grado de conexión de casi todos los nodos es bastante bajo.
+
+## Distribución de Grados y Conectividad Local
+
+- Distribución de grado
+```{r}
+dd <- degree_distribution(g)
+```
+
+- Grado promedio de los vecinos (GPV) más cercados de orden 1
+```{r}
+mnd <- knn(graph = g, vids = V(g))$knn
+mean(d[as.numeric(neighbors(graph = g, v = 1))])
+```
+
+## Visualización
+```{r, fig.height = 6, fig.width = 12, fig.align='center'}
+#| code-fold: true
+par(mfrow = c(1,2))
+plot(NA, NA, type = "n", xlim = c(0,110), ylim = c(0,0.1), xlab = "Grado", ylab = "Densidad", main = "Distribución de grado")
+hist(d, freq = F, col = "lightskyblue", border = "royalblue", add = T)
+plot((0:max(d))[dd != 0], dd[dd != 0], log = "xy", pch = 16, col = adjustcolor("royalblue", 0.5), xlab = "Log-grado", ylab = "Log-densidad", main = "Distribución de grado (log-log)")
+```
+## Visualización: GPV vs. grado 
+
+
+```{r, fig.height = 6, fig.width = 6,fig.align='center'}
+#| code-fold: true
+plot(x = d, y = mnd, log = "xy", pch = 16, col = adjustcolor("yellow3", 0.5), xlab = "Log-grado", ylab = "Log-grado promedio de los vecinos")
+```
+
+
+## Centralidad {.smaller}
+
+Las medidas de centralidad están diseñadas para **cuantificar la "importancia" de los nodos** de una red.
+
+- Centralidad de cercanía (*closeness centrality*).
+- Centralidad de intermediación (*betweenness centrality*).
+- Centralidad propia (*eigenvector centrality*).
+
+Existen versiones **normalizadas** de todas las medidas para facilitar la comparación entre grafos y otras medidas. La normalización se logra multiplicando por una constante apropiada.
+
+Existen versiones para **redes dirigidas** y **ponderadas**.
+
+## Centralidad de cercanía
+
+Un vértice se considera "importante" si está "cerca" de muchos otros vértices:
+$$
+c_{\textsf{C}}(v) = \frac{1}{\sum_{u\in V} \textsf{d}(v,u)}
+$$
+donde $\textsf{d}(v,u)$ es la distancia geodésica entre los vértices $u$ y $v$ de $V$.
+
+
+## ejemplo 
+
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+# distancias
+D <- distances(graph = g)
+# closeness centraliy no normalizada
+head(
+  cbind(
+    closeness(graph = g, normalized = F), 
+    1/apply(X = D, MARGIN = 1, FUN = sum), 
+    1/apply(X = D, MARGIN = 2, FUN = sum)), n = 5)
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+# closeness centraliy normalizada
+n <- vcount(g)
+head(
+  cbind(
+  closeness(graph = g, normalized = T), 
+  (n - 1)/apply(X = D, MARGIN = 1, FUN = sum), 
+  (n - 1)/apply(X = D, MARGIN = 2, FUN = sum)), n = 5)
+```
+:::
+
+::::
+```{r}
+# top 5
+cc <- closeness(graph = g, normalized = T)
+head(sort(cc, decreasing = T), n = 5)
+```
+
+## Centralidad de intermediación {.smaller}
+
+Un vértice se considera "importante" si se encuentra "entre" otros pares de vértices. 
+
+Los vértices que se encuentran en muchos caminos son más críticos para el proceso de comunicación:
+$$
+c_{\textsf{B}}(v) = \sum_{s,t\in V:s\neq t\neq v} \frac{\sigma(s,t\mid v)}{\sigma(s,t)}
+$$
+donde $\sigma(s,t\mid v)$ es el número total de caminos más cortos entre $s$ y $t$ que pasan por $v$, y $\sigma(s,t)$ es el número total de caminos más cortos entre $s$ y $t$ (independientemente de si pasan por $v$ o no).
+
+
+##
+
+```{r}
+# betweenness centraliy no normalizada
+head(x = betweenness(graph = g, normalized = F), n = 5)
+# betweenness centrality normalizada
+n <- vcount(g)
+head(
+  cbind(
+    betweenness(graph = g, normalized = F)/((n-1)*(n-2)/2), 
+    betweenness(graph = g, normalized = T)), n = 5)
+# top 5
+bc <- betweenness(graph = g, normalized = T)
+head(sort(bc, decreasing = T), n = 5)
+```
+## Centralidad propia {.smaller}
+
+Un vértice se considera "importante" si sus vecinos son a su vez "centrales": 
+$$
+c_{\textsf{E}}(v) = \alpha\sum_{\{u,v\}\in E} c(u)
+$$
+donde $\mathbf{c}=(c(1),\ldots,c(n))$ es una solución al problema de vectores propios dado por $\mathbf{Y}\mathbf{c}=\alpha^{-1}\mathbf{c}$, con $\mathbf{Y}$ la matriz de adyacencia, $\alpha^{-1}$ es el valor propio más grande de $\mathbf{Y}$, y $\mathbf{c}$ es el vector propio correspondiente. 
+
+La convención es reportar los valores absolutos de las entradas de $\mathbf{c}$.
+
+
+## Ejemplo {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r}
+# matriz de adyacencia
+Y <- as_adjacency_matrix(g, sparse = F)
+g <- graph_from_adjacency_matrix(Y)
+evd <- eigen(Y)
+# eigen centraliy no normalizada
+head(
+  cbind(
+    eigen_centrality(graph = g, scale = F)$vector,
+    eigen_centrality(graph = g, scale = F)$vector,
+    Y%*%c(1/evd$values[1]*(-1)*evd$vectors[,1])), n = 5)  # vector propio x (-1)
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+# eigen centraliy normalizada
+head(
+  cbind(
+    eigen_centrality(graph = g, scale = T)$vector,
+    eigen_centrality(graph = g, scale = T)$vector,
+    Y%*%c(1/evd$values[1]*(-1)*evd$vectors[,1])/max(Y%*%c(1/evd$values[1]*(-1)*evd$vectors[,1]))), n = 5)
+```
+:::
+
+::::
+```{r}
+# top 5
+ec <- eigen_centrality(graph = g, scale = T)$vector
+head(sort(ec, decreasing = T), n = 5)
+```
+##
+
+```{r, fig.height = 12, fig.width = 12, fig.align='center'}
+#| code-fold: true
+# medidas de centralidad
+dc <- degree          (graph = g, normalized = T)
+cc <- closeness       (graph = g, normalized = T)
+cc[is.na(cc)] <- 0
+bc <- betweenness     (graph = g, normalized = T)
+ec <- eigen_centrality(graph = g, scale = T)$vector
+# visualizacion
+par(mfrow = c(2,2), mar = c(4, 3, 3, 1))
+set.seed(123)
+plot(g, layout = l, vertex.size = 15*sqrt(dc), vertex.frame.color = "black", vertex.label = NA, main = "Grado",edge.arrow.size = 0.2)
+plot(g, layout = l, vertex.size = 5*sqrt(cc), vertex.frame.color = "black", vertex.label = NA, main = "Cercania",edge.arrow.size = 0.2)
+plot(g, layout = l, vertex.size = 15*sqrt(bc), vertex.frame.color = "black", vertex.label = NA, main = "Intermediación",edge.arrow.size = 0.2)
+plot(g, layout = l, vertex.size = 15*sqrt(ec), vertex.frame.color = "black", vertex.label = NA, main = "Propia",edge.arrow.size = 0.2)
+```

@@ -1,0 +1,482 @@
+---
+title: "Módulo Redes Sociales: Sesión 6"
+author: "Departamento de Estadística"
+institute: "Universidad Nacional de Colombia, Sede Bogotá"
+format:
+  revealjs: 
+    chalkboard: false
+    embed-resources: true
+    self-contained-math: true
+    html-math-method: katex
+    #smaller: true
+    scrollable: true
+    code-copy: true
+    slide-number: true
+    preview-links: auto
+    logo: logos.png
+    footer: Plan de formación DNI-UNAL 2024 - Perfil 1
+    link-external-newwindow: true
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
+---
+
+## Equipo de trabajo {.smaller}
+
+### Docente del módulo
+
+- Profesor Juan Camilo Sosa Martinez (Cohorte 1) <jcsosam@unal.edu.co>
+
+
+### Monitor del módulo
+
+- Bryan Camilo Riveros Guarnizo (Cohorte 1) <briveros@unal.edu.co>
+
+**Código a ejecutar para empezar (de clic en donde en dice "Code", para desplegar el código, y luego copie y pegue en una sesión abierta de R)**:
+
+```{r}
+#| code-fold: true
+# cambia idioma de la consola de R a español:
+Sys.setenv(LANG="es")
+# usar 2 cifras significativas y tiende a evitar 
+# notación científica (ver ayuda de función: `options`): 
+options(digits = 2, scipen = 999) 
+# cargar librerías: 
+if(!require(igraph)){
+  install.packages("igraph"); library(igraph)}
+if(!require(sand)){
+  install.packages("sand"); library(sand)}
+```
+
+
+# Introducción
+
+La **cohesión** se refiere a la medida en que **subconjuntos de vértices específicos son cohesivos (adherentes)** respecto a la relación que define las aristas.
+
+
+## *Cliques*
+
+Un enfoque para definir la **cohesión de una red** es mediante la **especificación de subgrafos** de interés.
+
+Un **clan** (*clique*) $C$ de un grafo $G=(V,E)$ es un subconjunto de vértices tal que cada par de vértices distintos son adyacentes, i.e., el subgrafo de $G$ **inducido** por $C$ es un **grafo completo**. 
+
+Clanes de tamaños más grandes incluyen clanes de tamaños más pequeños. 
+
+## Cuántos clanes?
+
+```{r, eval = TRUE, echo=FALSE, out.width="70%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("05_clique_ejemplo.png")
+```
+
+## Ejemplo {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+Creación del grafo
+```{r, fig.align='center'}
+#| code-fold: true
+# datos
+g <- graph(edges = c(1,2,1,3,1,4,1,5,2,3,2,4,2,5,3,4,3,5,4,5,6,7,6,8,7,8,9,10,1,6,2,9,7,9), directed = F)
+Y <- as.matrix(get.adjacency(graph = g, names = F))
+```
+
+Visualización
+
+```{r, fig.align='center'}
+par(mfrow = c(1,2), mar = c(4, 3, 3, 1))
+set.seed(42)
+plot(g, vertex.size = 20, vertex.color = 0, vertex.label.color = "black", edge.color = "blue4")
+corrplot::corrplot(corr = Y, col.lim = c(0,1), method = "color", tl.col = "black", addgrid.col = "gray", cl.pos = "n")
+```
+:::
+
+::: {.column width="50%"}
+Orden
+```{r}
+vcount(g)
+```
+Tamaño
+```{r}
+ecount(g)
+```
+Es un clan?
+```{r}
+c1 <- induced_subgraph(graph = g, vids = c(6,7,8))
+ecount(c1) == choose(n = vcount(c1), k = 2)
+```
+Frecuencias de clanes
+```{r}
+table(sapply(X = cliques(graph = g, min = 1, max = 10), FUN = length))
+```
+
+:::
+
+::::
+
+## {.smaller}
+
+
+Un **clan maximal** (*maximal clique*) es un clan que no se puede extender incluyendo algún otro vértice.
+
+```{r}
+# clanes maximales
+maximal.cliques(graph = g)
+```
+
+Un **clan máximo** (*maximum clique*) es el clan maximal más grande.
+
+##
+
+El **número clan** (*clique number*) es el tamaño del clan máximo.
+
+```{r}
+# clanes máximos
+largest.cliques(graph = g)
+# número clan
+clique.number(graph = g)
+```
+
+En la práctica, **clanes "grandes" son escasos**, ya que requieren que el grafo sea denso, pero las **redes reales comúnmente son dispersas** (*sparse*).
+
+
+## Díadas y tríadas
+
+Otras cantidades de interés son las **díadas** y las **tríadas**.
+
+¿Cuáles son los estados diádicos no dirigidos y dirigidos? 
+
+¿Y los triádicos?
+
+**Estados triádicos no dirigidos** (*undirected triadic motifs*):
+
+```{r, eval = TRUE, echo=FALSE, out.width="43%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("05_undirected_triadic_motifs.jpg")
+```
+
+##
+
+:::: {.columns}
+
+::: {.column width="50%"}
+**Estados triádicos dirigidos** (*directed triadic motifs*):
+
+
+```{r, eval = TRUE, echo=FALSE, out.width="100%", fig.pos = 'H', fig.align = 'center'}
+knitr::include_graphics("05_directed_triadic_motifs.jpg")
+```
+
+:::
+
+::: {.column width="50%"}
+
+Davis, J.A. and Leinhardt, S. (1972). **The Structure of Positive Interpersonal Relations in Small Groups.** In J. Berger (Ed.), Sociological Theories in Progress, Volume 2, 218-251. Boston: Houghton Mifflin.
+
+Un **censo de los estados diádicos** o **triádicos** proporciona una medida de la conectividad de una red.
+
+:::
+
+::::
+
+
+## Ejemplo: **Reforma Tributaria** en Colombia.{.smaller}
+
+**Red de influencia en Twitter** (ahora X) sobre la Reforma Tributaria en Colombia, en el contexto de su aprobación en el Congreso.
+
+Estos datos fueron recolectados para **estudiar las dinámicas** de interacción entre usuarios de la red social, en relación con las opiniones sobre la Reforma Tributaria.
+
+Los usuarios están conectados mediante aristas ponderadas por el **número de interacciones** (tuits, retuits, citas y comentarios) relacionadas con el tema.
+
+El artículo asociado a estos datos puede ser encontrado [aquí](https://arxiv.org/abs/2408.13606).
+
+## Ejemplo {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Datos
+```{r}
+load('out_refTrib.RData')
+```
+Grafo
+```{r}
+g
+```
+:::
+
+::: {.column width="50%"}
+Orden
+```{r}
+(n <- vcount(g))
+```
+Tamaño
+```{r}
+ecount(g)
+```
+Es dirigida?
+```{r}
+is_directed(g)
+```
+Es ponderada?
+```{r}
+is_weighted(g)
+```
+
+:::
+
+::::
+
+## Visualización {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+```{r, fig.height = 6, fig.width = 6, fig.align='center'}
+#| code-fold: true
+set.seed(123)
+par(mfrow = c(1,1), mar = c(4, 3, 3, 1))
+plot(g, layout = layout_with_kk, vertex.label = NA, vertex.size = 3, vertex.frame.color = 1, edge.arrow.size = 0.5, main = "")
+```
+
+:::
+
+::: {.column width="50%"}
+Censo de estados triádicos
+```{r}
+#   003   A,B,C, el grafo vacío.
+#   012   A->B, C, el grafo con un único borde dirigido.
+#   102   A<->B, C, el grafo con una conexión mutua entre dos vértices.
+#   021D  A<-B->C, la estrella con conexiones salientes (out-star).
+#   021U  A->B<-C, la estrella con conexiones entrantes (in-star).
+#   021C  A->B->C, línea dirigida.
+#   111D  A<->B<-C.
+#   111U  A<->B->C.
+#   030T  A->B<-C, A->C.
+#   030C  A<-B<-C, A->C.
+#   201   A<->B<->C.
+#   120D  A<-B->C, A<->C.
+#   120U  A->B<-C, A<->C.
+#   120C  A->B->C, A<->C.
+#   210   A->B<->C, A<->C.
+#   300   A<->B<->C, A<->C, el grafo completo.
+triad_census(g)
+```
+
+:::
+
+::::
+
+## 
+
+Censo de estados diádicos
+```{r}
+#   mut   El número de pares con conexiones mutuas.
+#   asym  El número de pares con conexiones no mutuas.
+#   null  El número de pares sin conexión entre ellos.
+dyad_census(g)
+```
+
+La mayoría de los estados son nulos, y entre aquellos que no lo son, casi todos presentan asimetría, lo que indica una unilateralidad predominante en la forma en que los participantes de la conversación se mencionan en los tuits.
+
+
+## Densidad {.smaller}
+
+La **densidad** (*density*) de un grafo se define como la frecuencia relativa de las aristas observadas respecto al potencial de aristas.
+
+Para un subgrafo $H=(V_H,E_H)$ del grafo $G=(V,E)$, la densidad se calcula como
+$$
+\textsf{den(H)}=\frac{|E_H|}{|V_H|(|V_H|-1)/2}\,.
+$$
+En el caso de un **digrafo** el denominador debe ser $|V_H|(|V_H|-1)$.
+
+La densidad asume valores entre 0 y 1 y se puede interpretar como una medida de qué tan cerca se encuentra $H$ de ser un clan.
+
+## Ejemplo:optencion de la densidad en R {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+Densidad según la fórmula
+```{r, fig.align='center'}
+ecount(g)/(vcount(g)*(vcount(g)-1))
+```
+El comando para calcular la densidad en la librería igraph 
+
+```{r}
+edge_density(graph = g)
+```
+
+El promedio de las conexiones 
+```{r}
+Y <- get.adjacency(g,sparse = F)
+mean(Y)
+```
+
+
+:::
+
+::: {.column width="50%"}
+Ego networks de Gustavo Petro, con las cuales observaremos el comportamiento de las relaciones en el subgrafo del vecindario del presidente.
+```{r}
+g_1  <- induced_subgraph(graph = g, vids = neighborhood(graph = g, order = 1, nodes = 'petrogustavo') [[1]])
+```
+
+Densidad del subgrafo
+```{r}
+edge_density(graph = g_1)
+```
+:::
+
+::::
+
+## Transitividad global {.smaller}
+Una **tripla** está constituida por tres nodos que están conectados por dos (tripla abierta) o tres (tripla cerrada) aristas.
+
+La **transitividad** (*transitivity*) de un grafo se cuantifica por medio del **coeficiente de agrupamiento** (*clustering coeffitient*) que se calcula como
+$$
+\textsf{cl} (G) =\frac{\text{no. triplas cerradas}}{\text{no. triplas}} =\frac{3\times \text{no. triángulos}}{\text{no. triplas}} = \frac{3\tau_\triangle(G)}{\tau_3(G)}\,,
+$$
+donde $\tau_\triangle(G)$ es el **número de triángulos** de $G$ y $\tau_3(G)$ es el **número de triplas**.
+
+El coeficiente de agrupamiento es una **medida de agrupamiento global** que caracteriza la propensión con la que las triplas forman triángulos.
+
+## Transitividad local {.smaller}
+
+El **coeficiente de agrupamiento** del vértice $v\in V$ se define teniendo en cuenta la incidencia de $v$ en las aristas que conforman las triplas:
+$$
+\textsf{cl}(v) = \frac{\text{no. triplas cerradas que incluyen a $v$}}{k_v(k_v-1)/2}\,,
+$$
+donde $k_v$ es el grado del nodo $v$.
+
+El coeficiente de agrupamiento de un vértice es una **medida de agrupamiento local** que cuantifica qué tan cerca están los vecinos del vértice de ser un clan.
+
+Alternativamente, el  **coeficiente de agrupamiento global** también se puede definir como el promedio de los coeficientes de agrupamiento locales de todos los vértices:
+$$
+\textsf{cl} (G) = \frac{1}{|V|}\sum_{v\in V} \textsf{cl}(v)\,.
+$$
+
+
+## Ejemplo {.smaller}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+Número de triángulos por vértice
+```{r}
+head(count_triangles(graph = g),20)
+```
+Vértices que son parte de un triángulo
+```{r}
+triangles(graph = g)
+```
+Conteos de estados triádicos
+```{r}
+(mot <- motifs(graph = g, size = 3))
+```
+
+Transitividad global
+```{r}
+transitivity(graph = g, type = "global")
+```
+
+:::
+
+::: {.column width="50%"}
+
+Transitividad local 
+```{r}
+head(sort(transitivity(graph = g, type = "local"),decreasing = T))
+```
+Transitividad global alternativa
+```{r}
+mean(transitivity(graph = g, type = "local", vids = V(g)), na.rm = T)
+```
+Intransitividad local de Gustavo Petro
+```{r}
+transitivity(g, type = "local", vids = c('petrogustavo'))
+```
+
+:::
+
+::::
+
+
+## Reciprocidad {.smaller}
+
+Un concepto exclusivo de los dígrafos es la **reciprocidad**, i.e., la propensión con la que hay reciprocidad de aristas en la red. 
+
+Las frecuencias se pueden calcular respecto al número de díadas o de aristas:
+$$
+\textsf{rec}(G) = \frac{\text{no. aristas reciprocas}}{\text{no. aristas}}\,,
+$$
+o alternativamente,
+$$
+\textsf{rec}(G) = \frac{\text{no. diadas reciprocas}}{\text{no. diadas no reciprocas}}\,.
+$$
+
+
+## Ejemplo
+Reciprocidad (aristas)
+```{r}
+reciprocity(g, mode = "default")
+```
+Reciprocidad (díadas)
+```{r}
+reciprocity(g, mode = "ratio")
+```
+
+## Conectividad {.smaller}
+
+Comúnmente una de las componentes conectadas de un grafo $G=(V,E)$ domina a las demás en magnitud. Tal componente se denomina **componente gigante** (*giant component*).
+
+En la práctica, la atención se restringe a la componente gigante para llevar a cabo tanto el análisis como el modelamiento.
+
+Un grafo $G=(V,E)$ se llama **$k$-conectado** (*$k$-connected*) si $|V|>k$ y la remoción de cualquier subconjunto de vértices $X \subset V$ tal que $|X| < k$ da como resultado un subgrafo que continua estando conectado.
+
+## Conectividad nodal
+
+La **conectividad nodal** de un grafo $G=(V,E)$ corresponde al entero más grande $k$ tal que $G$ es $k$-conectado. 
+
+Alternativamente, también se puede definir como el número mínimo de nodos que deben eliminarse para desconectar el grafo.
+
+Un vértice que la ser removido desconecta el grafo se denomina **vértice de corte** (*cut vertex*) o **punto de articulación** (*articulation point*). 
+
+La identificación de tales vértices proporciona una idea de dónde es vulnerable una red.
+
+
+## Ejemplo {.smaller}
+:::: {.columns}
+
+::: {.column width="50%"}
+Creación de la red 
+```{r}
+
+f <- graph(edges = c(1,2,1,3,2,3,1,4,4,5), directed = F)
+```
+
+Visualización
+
+```{r, fig.align='center'}
+set.seed(123)
+plot(f, vertex.size = 20, vertex.color = 0, vertex.label.color = "black", edge.color = "blue4")
+```
+:::
+
+::: {.column width="50%"}
+La red esta conectada?
+```{r}
+is_connected(f)
+```
+K-conectividad
+```{r}
+vertex_connectivity(f)
+edge_connectivity(f)
+```
+
+Puntos de articulación
+```{r}
+articulation_points(f)
+```
+:::
+
+::::
+
