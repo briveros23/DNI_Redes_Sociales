@@ -297,17 +297,18 @@ La densidad asume valores entre 0 y 1 y se puede interpretar como una medida de 
 ::: {.column width="50%"}
 Densidad según la fórmula
 ```{r, fig.align='center'}
-ecount(g)/(vcount(g)*(vcount(g)-1))
+gnd <- as.undirected(g)
+ecount(gnd)/(vcount(gnd)*(vcount(gnd)-1)/2)
 ```
 El comando para calcular la densidad en la librería igraph 
 
 ```{r}
-edge_density(graph = g)
+edge_density(graph = gnd)
 ```
 
 El promedio de las conexiones 
 ```{r}
-Y <- get.adjacency(g,sparse = F)
+Y <- get.adjacency(gnd,sparse = F)
 mean(Y)
 ```
 
@@ -317,7 +318,7 @@ mean(Y)
 ::: {.column width="50%"}
 Ego networks de Gustavo Petro, con las cuales observaremos el comportamiento de las relaciones en el subgrafo del vecindario del presidente.
 ```{r}
-g_1  <- induced_subgraph(graph = g, vids = neighborhood(graph = g, order = 1, nodes = 'petrogustavo') [[1]])
+g_1  <- induced_subgraph(graph = gnd, vids = neighborhood(graph = gnd, order = 1, nodes = 'petrogustavo') [[1]])
 ```
 
 Densidad del subgrafo
@@ -362,20 +363,20 @@ $$
 ::: {.column width="50%"}
 Número de triángulos por vértice
 ```{r}
-head(count_triangles(graph = g),20)
+head(count_triangles(graph = gnd),20)
 ```
 Vértices que son parte de un triángulo
 ```{r}
-triangles(graph = g)
+triangles(graph = gnd)
 ```
 Conteos de estados triádicos
 ```{r}
-(mot <- motifs(graph = g, size = 3))
+(mot <- motifs(graph = gnd, size = 3))
 ```
 
 Transitividad global
 ```{r}
-transitivity(graph = g, type = "global")
+transitivity(graph = gnd, type = "global")
 ```
 
 :::
@@ -384,15 +385,15 @@ transitivity(graph = g, type = "global")
 
 Transitividad local 
 ```{r}
-head(sort(transitivity(graph = g, type = "local"),decreasing = T))
+head(sort(transitivity(graph = gnd, type = "local"),decreasing = T))
 ```
 Transitividad global alternativa
 ```{r}
-mean(transitivity(graph = g, type = "local", vids = V(g)), na.rm = T)
+mean(transitivity(graph = gnd, type = "local", vids = V(gnd)), na.rm = T)
 ```
 Intransitividad local de Gustavo Petro
 ```{r}
-transitivity(g, type = "local", vids = c('petrogustavo'))
+transitivity(gnd, type = "local", vids = c('petrogustavo'))
 ```
 
 :::
@@ -417,11 +418,11 @@ $$
 ## Ejemplo
 Reciprocidad (aristas)
 ```{r}
-reciprocity(g, mode = "default")
+reciprocity(gnd, mode = "default")
 ```
 Reciprocidad (díadas)
 ```{r}
-reciprocity(g, mode = "ratio")
+reciprocity(gnd, mode = "ratio")
 ```
 
 ## Conectividad {.smaller}

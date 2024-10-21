@@ -390,16 +390,18 @@ head(sort(ec, decreasing = T), n = 5)
 ```{r, fig.height = 12, fig.width = 12, fig.align='center'}
 #| code-fold: true
 # medidas de centralidad
-dc <- degree          (graph = g, normalized = T)
-cc <- closeness       (graph = g, normalized = T)
-cc[is.na(cc)] <- 0
-bc <- betweenness     (graph = g, normalized = T)
-ec <- eigen_centrality(graph = g, scale = T)$vector
+gnd <- as.undirected(g)
+dc <- degree          (graph = gnd, normalized = T)
+cc <- closeness       (graph = gnd, normalized = T)
+bc <- betweenness     (graph = gnd, normalized = T)
+ec <- eigen_centrality(graph = gnd, scale = T)$vector
 # visualizacion
 par(mfrow = c(2,2), mar = c(4, 3, 3, 1))
 set.seed(123)
-plot(g, layout = l, vertex.size = 15*sqrt(dc), vertex.frame.color = "black", vertex.label = NA, main = "Grado",edge.arrow.size = 0.2)
-plot(g, layout = l, vertex.size = 5*sqrt(cc), vertex.frame.color = "black", vertex.label = NA, main = "Cercania",edge.arrow.size = 0.2)
-plot(g, layout = l, vertex.size = 15*sqrt(bc), vertex.frame.color = "black", vertex.label = NA, main = "Intermediación",edge.arrow.size = 0.2)
-plot(g, layout = l, vertex.size = 15*sqrt(ec), vertex.frame.color = "black", vertex.label = NA, main = "Propia",edge.arrow.size = 0.2)
+plot(gnd, layout = l, vertex.size = 15*sqrt(dc), vertex.frame.color = "black", vertex.label = NA, main = "Grado",edge.arrow.size = 0.2)
+plot(gnd, layout = l, vertex.size = 15*sqrt(cc), vertex.frame.color = "black", vertex.label = NA, main = "Cercania",edge.arrow.size = 0.2)
+plot(gnd, layout = l, vertex.size = 15*sqrt(bc), vertex.frame.color = "black", vertex.label = NA, main = "Intermediación",edge.arrow.size = 0.2)
+plot(gnd, layout = l, vertex.size = 15*sqrt(ec), vertex.frame.color = "black", vertex.label = NA, main = "Propia",edge.arrow.size = 0.2)
 ```
+
+
